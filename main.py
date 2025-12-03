@@ -1,3 +1,12 @@
+import gradio as gr
+import os
+
+def serve_frontend():
+    return open("static/index.html").read()
+
+app = gr.Blocks()
+app.add_component("html", serve_frontend())
+
 from flask import Flask, request, jsonify, send_from_directory
 import os
 import moviepy.editor as mp
@@ -196,3 +205,4 @@ def serve_output(filename):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
