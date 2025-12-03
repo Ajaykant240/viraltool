@@ -1,9 +1,0 @@
-
-moviepy==1.0.3
-gradio
-google-generativeai>=0.8.3
-numpy
-Pillow==9.5.0
-textwrap3
-imageio-ffmpeg
-
