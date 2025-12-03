@@ -6,3 +6,5 @@ Pillow
 textwrap3
 imageio-ffmpeg
 flask
+gunicorn
+flask-cors
