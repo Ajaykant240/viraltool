@@ -1,8 +1,7 @@
-flask
 moviepy==1.0.3
 gradio
 google-generativeai>=0.8.3
-numpy
-Pillow==9.5.0
+numpy==1.26.4
+Pillow
 textwrap3
 imageio-ffmpeg
