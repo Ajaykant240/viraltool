@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ViralTool – AI Reels Studio</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0d1117;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      color: #e6edf3;
+    }
+
+    /* Top Navigation */
+    .nav {
+      height: 60px;
+      background: #161b22;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid #30363d;
+    }
+    .nav .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+    .nav .tagline {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    /* Layout */
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 320px;
+      background: #161b22;
+      border-right: 1px solid #30363d;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .hint {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #0d1117;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      font-size: 13px;
+      outline: none;
+    }
+    .field input[type="file"] {
+      padding: 4px;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.4);
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #238636;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      margin-top: 4px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    #error {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #ff6b6b;
+    }
+
+    /* Workspace */
+    .workspace {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .output-card {
+      background: #161b22;
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+      margin-bottom: 20px;
+    }
+    .output-card h3 {
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: #58a6ff;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+    }
+    .placeholder {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+
+    .mono {
+      background: #0d1117;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="logo">ViralTool</div>
+    <div class="tagline">Desktop Pro · Backend: viraltool.onrender.com</div>
+  </div>
+
+  <div class="container">
+    <!-- LEFT: Controls -->
+    <div class="sidebar">
+      <h2>Input</h2>
+
+      <div class="field">
+        <label>Video file *</label>
+        <input type="file" id="video" accept="video/*" />
+        <div class="hint">MP4 / MOV recommended.</div>
+      </div>
+
+      <div class="field">
+        <label>Logo (optional)</label>
+        <input type="file" id="logo" accept="image/*" />
+        <div class="hint">PNG with transparent background works best.</div>
+      </div>
+
+      <div class="field">
+        <label>On-screen text (optional)</label>
+        <textarea id="overlay_text" rows="3" placeholder="Leave empty to let AI write the overlay text."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Music track (optional)</label>
+        <input type="file" id="music" accept="audio/*" />
+      </div>
+
+      <div class="field">
+        <label>Gemini API key *</label>
+        <input type="password" id="api_key" placeholder="Enter your Gemini API key" />
+      </div>
+
+      <button id="genBtn" onclick="generateVideo()">Generate video</button>
+      <div id="status">Idle · Ready</div>
+      <div id="error"></div>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="workspace">
+      <div class="output-card">
+        <h3>Rendered video</h3>
+        <video id="outputVideo" controls style="display:none;"></video>
+        <div id="videoPlaceholder" class="placeholder">
+          No video generated yet.
+        </div>
+      </div>
+
+      <div class="output-card">
+        <h3>AI overlay text</h3>
+        <div id="aiText" class="mono">Nothing generated yet.</div>
+      </div>
+
+      <div class="output-card">
+        <h3>Caption</h3>
+        <div id="captions" class="mono">Nothing generated yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function generateVideo() {
+      const btn = document.getElementById("genBtn");
+      const status = document.getElementById("status");
+      const error = document.getElementById("error");
+
+      error.textContent = "";
+
+      const videoFile = document.getElementById("video").files[0];
+      const apiKey = document.getElementById("api_key").value.trim();
+
+      if (!videoFile) {
+        error.textContent = "Please upload a video file.";
+        return;
+      }
+      if (!apiKey) {
+        error.textContent = "Please enter your Gemini API key.";
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = "Processing… this may take a bit.";
+
+      const form = new FormData();
+      form.append("video", videoFile);
+
+      const logoFile = document.getElementById("logo").files[0];
+      if (logoFile) form.append("logo", logoFile);
+
+      const musicFile = document.getElementById("music").files[0];
+      if (musicFile) form.append("music", musicFile);
+
+      form.append("overlay_text", document.getElementById("overlay_text").value);
+      form.append("api_key", apiKey);
+      form.append("description", ""); // no description field in UI, send empty string
+
+      try {
+        const res = await fetch("https://viraltool.onrender.com/api/generate-video", {
+          method: "POST",
+          body: form
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Unknown error from backend.");
+        }
+
+        // Video
+        if (data.video_url) {
+          const videoEl = document.getElementById("outputVideo");
+          videoEl.src = data.video_url;
+          videoEl.style.display = "block";
+          document.getElementById("videoPlaceholder").style.display = "none";
+        }
+
+        // Overlay text
+        document.getElementById("aiText").textContent =
+          data.overlay_text && data.overlay_text.trim()
+            ? data.overlay_text
+            : "No overlay text returned.";
+
+        // Captions
+        document.getElementById("captions").textContent =
+          data.captions && data.captions.trim()
+            ? data.captions
+            : "No captions returned.";
+
+        status.textContent = "Done · Video generated.";
+      } catch (e) {
+        console.error(e);
+        error.textContent = e.message || "Something went wrong.";
+        status.textContent = "Idle · Error.";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
