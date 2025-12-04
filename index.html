@@ -29,7 +29,7 @@
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       background: var(--card);
       border-radius: 26px;
       padding: 24px;
@@ -57,6 +57,18 @@
       font-size: 14px;
     }
 
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 880px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     .card {
       background: white;
       padding: 18px;
@@ -64,6 +76,13 @@
       margin-bottom: 22px;
       border: 1px solid var(--border-light);
       box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: var(--text-main);
     }
 
     label {
@@ -145,6 +164,86 @@
       font-size: 14px;
       min-height: 60px;
     }
+
+    /* History styles */
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .history-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .history-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .history-item {
+      border-radius: 14px;
+      border: 1px solid #e1e3ec;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #f9fafc;
+      font-size: 13px;
+    }
+
+    .history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .history-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .history-title {
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 13px;
+      max-width: 60%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-actions a {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .history-empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 8px 0;
+    }
+
+    .pill-btn {
+      border-radius: 999px;
+      padding: 5px 10px;
+      border: 1px solid #d8dbe3;
+      background: #f7f8fb;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .pill-btn:hover {
+      background: #eef0f7;
+    }
   </style>
 </head>
 
@@ -154,45 +253,187 @@
     <h1>AI Viral Video Generator</h1>
     <div class="sub">Upload your video & generate hooks, overlays, and captions.</div>
 
-    <!-- INPUT CARD -->
-    <div class="card">
-      <label>Video (required)</label>
-      <input type="file" id="video" accept="video/*">
+    <div class="grid">
+      <!-- LEFT: INPUT + OUTPUT -->
+      <div>
+        <!-- INPUT CARD -->
+        <div class="card">
+          <h3>Create New</h3>
 
-      <label>Logo (optional)</label>
-      <input type="file" id="logo" accept="image/*">
+          <label>Video (required)</label>
+          <input type="file" id="video" accept="video/*">
 
-      <label>Custom Overlay Text (optional)</label>
-      <textarea id="overlay_text" placeholder="Leave empty for AI text…"></textarea>
+          <label>Logo (optional)</label>
+          <input type="file" id="logo" accept="image/*">
 
-      <label>Description (optional)</label>
-      <input type="text" id="description" placeholder="Describe what is happening…">
+          <label>Custom Overlay Text (optional)</label>
+          <textarea id="overlay_text" placeholder="Leave empty for AI text…"></textarea>
 
-      <label>Music (optional)</label>
-      <input type="file" id="music" accept="audio/*">
+          <label>Description (optional)</label>
+          <input type="text" id="description" placeholder="Describe what is happening…">
 
-      <label>Music Volume</label>
-      <input type="range" id="music_volume" min="0" max="100" value="60">
+          <label>Music (optional)</label>
+          <input type="file" id="music" accept="audio/*">
 
-      <button onclick="generateVideo()">Generate Video</button>
-    </div>
+          <label>Music Volume</label>
+          <input type="range" id="music_volume" min="0" max="100" value="60">
 
-    <!-- OUTPUT CARD -->
-    <div class="card">
-      <h3>Output Video</h3>
-      <video id="outputVideo" controls></video>
+          <button onclick="generateVideo()">Generate Video</button>
+        </div>
 
-      <h3>AI Overlay Text</h3>
-      <div id="textOut" class="output-box">Nothing yet…</div>
+        <!-- OUTPUT CARD -->
+        <div class="card">
+          <h3>Output Video</h3>
+          <video id="outputVideo" controls></video>
 
-      <h3>AI Captions</h3>
-      <div id="captionsOut" class="output-box">Nothing yet…</div>
+          <h3>AI Overlay Text</h3>
+          <div id="textOut" class="output-box">Nothing yet…</div>
+
+          <h3>AI Captions</h3>
+          <div id="captionsOut" class="output-box">Nothing yet…</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: HISTORY DASHBOARD -->
+      <div>
+        <div class="card">
+          <div class="history-header">
+            <h3>History (last 30 days)</h3>
+            <button class="pill-btn" type="button" onclick="clearHistory()">
+              Clear history
+            </button>
+          </div>
+          <div class="history-sub">
+            Saved locally in your browser. Each entry is stored when a video is generated successfully.
+          </div>
+          <div id="historyList" class="history-list">
+            <!-- History items injected here -->
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
 
 <script>
   const BACKEND_URL = "https://viraltool.onrender.com";
+
+  function loadHistory() {
+    const historyContainer = document.getElementById("historyList");
+    historyContainer.innerHTML = "";
+
+    const raw = localStorage.getItem("videoHistory");
+    let history = [];
+    if (raw) {
+      try {
+        history = JSON.parse(raw);
+      } catch (e) {
+        history = [];
+      }
+    }
+
+    const now = Date.now();
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+    // Filter to last 30 days only
+    const recent = history.filter(item => {
+      if (!item.createdAt) return false;
+      const t = new Date(item.createdAt).getTime();
+      return now - t <= THIRTY_DAYS_MS;
+    });
+
+    if (recent.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "history-empty";
+      empty.textContent = "No videos in the last 30 days.";
+      historyContainer.appendChild(empty);
+      return;
+    }
+
+    recent.forEach(item => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "history-item";
+
+      const header = document.createElement("div");
+      header.className = "history-item-header";
+
+      const title = document.createElement("div");
+      title.className = "history-title";
+      const firstLine = (item.overlay_text || "No overlay text").split("\n")[0];
+      title.textContent = firstLine;
+
+      const date = document.createElement("div");
+      date.className = "history-date";
+      const d = new Date(item.createdAt);
+      date.textContent = d.toLocaleString();
+
+      header.appendChild(title);
+      header.appendChild(date);
+
+      const actions = document.createElement("div");
+      actions.className = "history-actions";
+
+      if (item.video_url) {
+        const link = document.createElement("a");
+        link.href = item.video_url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = "Open video";
+        actions.appendChild(link);
+      }
+
+      const body = document.createElement("div");
+      body.style.fontSize = "12px";
+      body.style.color = "var(--text-muted)";
+      body.style.marginTop = "4px";
+      body.textContent = (item.captions || "").slice(0, 120) || "No captions saved.";
+
+      wrapper.appendChild(header);
+      wrapper.appendChild(actions);
+      wrapper.appendChild(body);
+
+      historyContainer.appendChild(wrapper);
+    });
+  }
+
+  function saveToHistory(video_url, overlay_text, captions) {
+    const raw = localStorage.getItem("videoHistory");
+    let history = [];
+    if (raw) {
+      try {
+        history = JSON.parse(raw);
+      } catch (e) {
+        history = [];
+      }
+    }
+
+    const absoluteVideoUrl = video_url.startsWith("http")
+      ? video_url
+      : BACKEND_URL + video_url;
+
+    const entry = {
+      video_url: absoluteVideoUrl,
+      overlay_text: overlay_text || "",
+      captions: captions || "",
+      createdAt: new Date().toISOString()
+    };
+
+    // Newest first
+    history.unshift(entry);
+
+    // (Optional) limit storage size, keep last 100 entries
+    if (history.length > 100) {
+      history = history.slice(0, 100);
+    }
+
+    localStorage.setItem("videoHistory", JSON.stringify(history));
+  }
+
+  function clearHistory() {
+    if (!confirm("Clear local history for the last 30 days? This only affects your browser.")) return;
+    localStorage.removeItem("videoHistory");
+    loadHistory();
+  }
 
   async function generateVideo() {
     const form = new FormData();
@@ -231,15 +472,23 @@
 
     // Video
     const videoEl = document.getElementById("outputVideo");
-    videoEl.src = data.video_url.startsWith("http")
-      ? data.video_url
-      : BACKEND_URL + data.video_url;
+    const rawUrl = data.video_url;
+    const fullUrl = rawUrl.startsWith("http") ? rawUrl : BACKEND_URL + rawUrl;
+
+    videoEl.src = fullUrl;
     videoEl.classList.add("visible");
 
     // Text & captions
     document.getElementById("textOut").innerText = data.overlay_text;
     document.getElementById("captionsOut").innerText = data.captions;
+
+    // Save to history
+    saveToHistory(rawUrl, data.overlay_text, data.captions);
+    loadHistory();
   }
+
+  // Load history on page load
+  document.addEventListener("DOMContentLoaded", loadHistory);
 </script>
 
 </body>
