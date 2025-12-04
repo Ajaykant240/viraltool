@@ -10,10 +10,7 @@
     <style>
         /* ——— GLOBAL STYLES ——— */
         body { font-family: 'Inter', sans-serif; }
-        
-        /* Hide scrollbar for Chrome, Safari and Opera */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* Hide scrollbar for IE, Edge and Firefox */
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* ——— CAT LOADER STYLES ——— */
@@ -354,7 +351,6 @@
         loaderOverlay.classList.add("visible");
         generateBtn.disabled = true;
 
-        // Fake progress up to 95% while waiting for backend
         loaderInterval = setInterval(() => {
             if (loaderProgress < 95) {
                 const step = loaderProgress < 70 ? 4 : 2;
@@ -391,7 +387,6 @@
         }, 300);
     }
 
-    // ——— UI HELPERS ———
     function updateFileName(input, displayId) {
         if(input.files && input.files.length > 0) {
             document.getElementById(displayId).textContent = input.files[0].name;
@@ -407,7 +402,6 @@
             return;
         }
 
-        // Construct Data for Python Backend
         const form = new FormData();
         form.append("video", videoFile);
         
@@ -422,34 +416,40 @@
         form.append("description", document.getElementById("descInput").value);
         form.append("music_volume", document.getElementById("volumeInput").value);
 
-        // Start Loader
         startLoader();
 
         try {
-            // Send Request
             const res = await fetch(`${BACKEND_URL}/api/generate-video`, {
                 method: "POST",
                 body: form
             });
-            const data = await res.json();
+
+            // ——— FIX FOR "Unexpected end of JSON" ———
+            // 1. Read as text first to avoid crash if empty
+            const rawText = await res.text();
+            
+            // 2. Try to parse JSON
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                // If parsing fails, it means the server crashed/timed out and sent HTML or nothing
+                throw new Error("Server Error: The video process likely timed out or crashed. Try a shorter video.");
+            }
 
             if (!res.ok || data.error) throw new Error(data.error || "Unknown error");
 
-            // Success: Finish Loader
             finishLoader();
 
-            // 1. Show Video in Preview
             const fullUrl = data.video_url.startsWith("http") ? data.video_url : BACKEND_URL + data.video_url;
             const vidEl = document.getElementById("outputVideo");
             vidEl.src = fullUrl;
             vidEl.classList.remove("hidden");
             document.getElementById("previewPlaceholder").classList.add("hidden");
             
-            // 2. Show Generated Text
             document.getElementById("outOverlay").innerText = data.overlay_text || "No text generated";
             document.getElementById("outCaptions").innerText = (data.captions || "No captions").substring(0, 100) + "...";
 
-            // 3. Save to Dashboard History
             saveToHistory({
                 name: videoFile.name,
                 url: fullUrl,
@@ -459,7 +459,7 @@
 
         } catch (err) {
             console.error(err);
-            alert("Error: " + err.message);
+            alert("Oops: " + err.message);
             errorLoader();
         }
     }
@@ -476,22 +476,16 @@
         const countEl = document.getElementById("stat-count");
         
         let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-
-        // Filter: Keep only last 30 days
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
         const cleanHistory = history.filter(item => new Date(item.date) > thirtyDaysAgo);
         
-        // Save cleaned history back
         if(cleanHistory.length !== history.length) {
             localStorage.setItem(HISTORY_KEY, JSON.stringify(cleanHistory));
         }
 
-        // Update Stats
         countEl.innerText = cleanHistory.length;
-
-        // Populate Table
         tbody.innerHTML = "";
         
         if (cleanHistory.length === 0) {
