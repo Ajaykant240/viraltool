@@ -233,7 +233,17 @@ def process_video_logic(video_path, logo_path, user_text, video_desc, user_api_i
         filename = f"output_viral_{os.urandom(4).hex()}.mp4"
         output_path = os.path.join(OUTPUT_DIR, filename)
         
-        final_clip.write_videofile(output_path, fps=40, codec="libx264", audio_codec="aac")
+        # *** OPTIMIZATION APPLIED HERE ***
+        # Using preset="ultrafast" and threads=1 to reduce rendering time 
+        # and limit resource usage, reducing the chance of a server crash/timeout.
+        final_clip.write_videofile(
+            output_path, 
+            fps=40, 
+            codec="libx264", 
+            audio_codec="aac",
+            preset="ultrafast",  # Speeds up encoding
+            threads=1           # Limits CPU usage
+        )
         
         return filename, final_overlay, final_caption
         
@@ -270,8 +280,9 @@ def api_generate():
             temp_files.append(l_path)
 
         # Call YOUR processing logic
+        # Note: API key is currently ignored in the HTML front-end upload form
         output_filename, final_overlay, final_caption = process_video_logic(
-            v_path, l_path, user_text, desc, ""
+            v_path, l_path, user_text, desc, "" 
         )
 
         if not output_filename:
