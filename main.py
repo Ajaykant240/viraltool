@@ -8,41 +8,45 @@ import moviepy.editor as mp
 import google.generativeai as genai
 from PIL import Image, ImageDraw, ImageFont
 
-# -------- PIL Resize Compatibility for Pillow >= 10 ----------
-try:
-    PIL_RESAMPLE = Image.Resampling.LANCZOS
-except:
-    PIL_RESAMPLE = Image.LANCZOS
+# ==========================================
+#  FIX: MONKEY PATCH FOR PILLOW 10 ERROR
+# ==========================================
+if not hasattr(Image, 'ANTIALIAS'):
+    Image.ANTIALIAS = Image.LANCZOS
+# ==========================================
 
-# ---------- FLASK APP ----------
+# ---------- FLASK APP SETUP (Connection to HTML) ----------
 app = Flask(__name__)
-CORS(app)  # allow calls from your HTML frontend
+CORS(app)
 
 # ---------- CONFIG ----------
 OUTPUT_DIR = "static/output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 SECRET_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# ---------- HELPERS: SERVE FRONTEND & VIDEO ----------
+# ---------- ROUTES (Connection to HTML) ----------
 @app.route("/")
 def index():
-    # Serve your HTML if it's in the same folder (index.html)
     return send_from_directory(".", "index.html")
 
 @app.route("/static/output/<path:filename>")
 def serve_output(filename):
     return send_from_directory(OUTPUT_DIR, filename)
 
-# ---------- FROM YOUR CODE: REMOVE BLACK BG ----------
+# =========================================================
+#  YOUR LOGIC FROM APP.PY STARTS HERE
+#  (Preserved: Prompts, Resize, Positions, Font Sizes)
+# =========================================================
+
 def remove_black_background(image_path):
+    # Open the image
     image = Image.open(image_path).convert("RGBA")
     datas = image.getdata()
     
     new_data = []
     for item in datas:
-        # If the pixel is black or very dark (sum of RGB < 50), make it transparent
-        if sum(item[:3]) < 50: 
+        # If the pixel is black (or close to black), make it transparent
+        if item[:3] == (0, 0, 0):  # pure black
             new_data.append((item[0], item[1], item[2], 0))  # fully transparent
         else:
             new_data.append(item)
@@ -50,31 +54,40 @@ def remove_black_background(image_path):
     image.putdata(new_data)
     return image
 
-# ---------- FROM YOUR CODE: TEXT CLIP (PIL) ----------
-def create_text_clip_pil(text, fontsize=40, color='black', width=1000,
-                         font_path="/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"):
-
+def create_text_clip_pil(text, fontsize=50, color='black', width=1000, font_path="/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"):
+    """
+    Creates a text image using Pillow instead of ImageMagick.
+    Returns a MoviePy ImageClip.
+    """
+    # 1. Setup Font
     try:
         font = ImageFont.truetype(font_path, fontsize)
     except IOError:
+        # Fallback to default if specific font not found
         font = ImageFont.load_default()
         print("Warning: Custom font not found, using default.")
 
+    # 2. Calculate Text Size
     dummy_draw = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
     
-    lines = textwrap.wrap(text, width=32)
+    # Text wrapping
+    lines = textwrap.wrap(text, width=32) # Wrap text to fit width
     final_text = "\n".join(lines)
     
+    # Calculate bounding box
     bbox = dummy_draw.multiline_textbbox((0, 0), final_text, font=font, align="center")
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
     
+    # Add some padding
     img_w = int(text_width + 100)
     img_h = int(text_height + 50)
     
+    # 3. Draw Text on Transparent Background
     img = Image.new('RGBA', (img_w, img_h), (255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
     
+    # Draw text centered
     draw.multiline_text(
         (img_w/2, img_h/2), 
         final_text, 
@@ -84,12 +97,11 @@ def create_text_clip_pil(text, fontsize=40, color='black', width=1000,
         align="center"
     )
     
+    # 4. Convert to MoviePy Clip
     numpy_img = np.array(img)
     return mp.ImageClip(numpy_img)
 
-# ---------- FROM YOUR CODE: GEMINI LOGIC ----------
 def generate_viral_content(user_api_key, video_description, manual_text):
-
     api_key = SECRET_API_KEY if SECRET_API_KEY else user_api_key
     
     if not api_key:
@@ -98,11 +110,13 @@ def generate_viral_content(user_api_key, video_description, manual_text):
     try:
         genai.configure(api_key=api_key)
         
+        # Try requested model, fallback if needed
         try:
             model = genai.GenerativeModel('gemini-2.5-flash')
         except:
             model = genai.GenerativeModel('gemini-1.5-flash')
 
+        # 1. Overlay Text
         if manual_text:
             overlay_text = manual_text
         else:
@@ -115,58 +129,64 @@ def generate_viral_content(user_api_key, video_description, manual_text):
 
             Style Guidelines:
             1. Tone: Unfiltered, relatable, slightly toxic, or hype.
-            2. Vocabulary: Use current US slang.
-            3. Format: POV or reaction.
-            4. Must sound human.
+            2. Vocabulary: Use current US slang (e.g., "bro," "cooked," "wild," "real,").
+            3. Format: Can be a POV, a reaction, or a caption.
+            4. Vibe Check: It must sound like a human wrote it, not a robot.
 
             STRICT Safety Rules:
-              - No gambling terms.
+              - ABSOLUTELY NO gambling terms (Big Win, Casino, Bet, Jackpot).
+              - If the video involves luck/money, focus on the "shock" or "reaction," not the gambling aspect.
 
-            Examples:
-              - "Bro really thought he was him"
-              - "My anxiety could never"
+            Examples of the Vibe I want:
+              - "Bro really thought he was him "
+              - "My anxiety could never "
+              - "Who allowed this man outside??"
               - "Moments before disaster struck..."
 
-            Return ONLY the text.
+            Task: Based on the context above, write the text overlay now.
+            Return ONLY the text. No quotes. 
             """
             response = model.generate_content(prompt_overlay)
-            overlay_text = response.text.strip()
+            overlay_text = response.text.strip()  
 
+        # 2. Caption
         prompt_caption = f""" 
         Task: Write an Instagram caption for: {video_description}.
         Include:
-        - 1 Hook
+        - 1 Hook sentence.
         - Hashtag #bluffinbob
-        - 3 viral hashtags + 4 topic hashtags
-        No gambling words.
+        - 3 Viral hashtags , 4 video topic viral hashtags
+        Constraint: No gambling words.                               
         """
         response_caption = model.generate_content(prompt_caption)
         caption_output = response_caption.text.strip()
         
         return overlay_text, caption_output
-
     except Exception as e:
         return f"AI Error: {str(e)}", "AI Error" 
 
-# ---------- FROM YOUR CODE: VIDEO PROCESSING ----------
-def process_video(video_path, logo_path, user_text, video_desc, user_api_input):
-
+# --- VIDEO PROCESSING (Your Logic) ---
+def process_video_logic(video_path, logo_path, user_text, video_desc, user_api_input):
     if not video_path:
         return None, None, "Upload a video first!"
         
     print("Processing video...")
     
+    # Get Text from AI
     final_overlay, final_caption = generate_viral_content(user_api_input, video_desc, user_text)
     
     if "Error" in final_overlay:
         return None, None, final_overlay
 
     try:
+        # Settings
         W, H = 1080, 1920
         background = mp.ColorClip(size=(W, H), color=(255, 255, 255))
         
+        # Load Video
         clip = mp.VideoFileClip(video_path)
         
+        # Crop & Resize (4:5 Ratio)
         target_w = 980
         target_h = 1225
         
@@ -185,39 +205,46 @@ def process_video(video_path, logo_path, user_text, video_desc, user_api_input):
         clip_positioned = clip_cropped.set_position("center")
         background = background.set_duration(clip.duration)
         
+        # --- NEW TEXT METHOD (The Fix) ---
+        # Instead of mp.TextClip, we use our PIL function
         txt_clip = create_text_clip_pil(
             text=final_overlay, 
-            fontsize=40, 
+            fontsize=43,   # Your specified fontsize
             color='black', 
-            width=W*0.8
+            width=W*0.9
         )
         
+        # Position Text Top Center (180px down) -> Your code said 200 actually
         txt_clip = txt_clip.set_position(('center', 200)).set_duration(clip.duration)
         
         composite_elements = [background, clip_positioned, txt_clip]
-        
+
+        # Logo
         if logo_path:
-            cleaned_logo_pil = remove_black_background(logo_path)
-            cleaned_logo_np = np.array(cleaned_logo_pil)
-            logo = mp.ImageClip(cleaned_logo_np).resize(width=250)
-            logo = logo.set_position(('center', 1350))
+            logo = mp.ImageClip(logo_path).resize(width=150)
+            logo = logo.set_position(('center', 1400)) # Your specific position
             composite_elements.append(logo)
 
+        # Render
         final_clip = mp.CompositeVideoClip(composite_elements)
         final_clip = final_clip.set_duration(clip.duration)
         
+        # Generate Random Filename for web serving (HTML requirement)
         filename = f"output_viral_{os.urandom(4).hex()}.mp4"
         output_path = os.path.join(OUTPUT_DIR, filename)
         
         final_clip.write_videofile(output_path, fps=40, codec="libx264", audio_codec="aac")
-
+        
         return filename, final_overlay, final_caption
         
     except Exception as e:
         traceback.print_exc()
         return None, None, f"Video Error: {str(e)}"
 
-# ---------- NEW: API ENDPOINT ----------
+# =========================================================
+#  API LOGIC (Connecting your logic to HTML)
+# =========================================================
+
 @app.route("/api/generate-video", methods=["POST"])
 def api_generate():
     temp_files = []
@@ -226,13 +253,11 @@ def api_generate():
         if not video:
             return jsonify({"error": "Upload a video first!"}), 400
 
-        if not SECRET_API_KEY:
-            return jsonify({"error": "Server has no GEMINI_API_KEY set"}), 500
-
         logo = request.files.get("logo")
         desc = request.form.get("description", "")
         user_text = request.form.get("overlay_text", "")
 
+        # Save temporary files
         uid = os.urandom(4).hex()
         v_path = f"temp_video_{uid}.mp4"
         video.save(v_path)
@@ -244,13 +269,15 @@ def api_generate():
             logo.save(l_path)
             temp_files.append(l_path)
 
-        output_filename, final_overlay, final_caption = process_video(
+        # Call YOUR processing logic
+        output_filename, final_overlay, final_caption = process_video_logic(
             v_path, l_path, user_text, desc, ""
         )
 
         if not output_filename:
             return jsonify({"error": final_caption or "Processing failed"}), 500
 
+        # Return result to HTML
         return jsonify({
             "status": "success",
             "video_url": f"/static/output/{output_filename}",
@@ -263,6 +290,7 @@ def api_generate():
         return jsonify({"error": str(e)}), 500
 
     finally:
+        # Cleanup temp upload files
         for f in temp_files:
             if f and os.path.exists(f):
                 try:
