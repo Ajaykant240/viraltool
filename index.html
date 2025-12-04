@@ -424,17 +424,15 @@
                 body: form
             });
 
-            // ——— FIX FOR "Unexpected end of JSON" ———
-            // 1. Read as text first to avoid crash if empty
+            // ——— FIX: Handle Empty/HTML Responses (Server Crash) ———
             const rawText = await res.text();
-            
-            // 2. Try to parse JSON
             let data;
+            
             try {
                 data = JSON.parse(rawText);
             } catch (e) {
-                // If parsing fails, it means the server crashed/timed out and sent HTML or nothing
-                throw new Error("Server Error: The video process likely timed out or crashed. Try a shorter video.");
+                console.error("Server returned non-JSON:", rawText);
+                throw new Error("Server Crash/Timeout. The video is likely too large for the free server. Try a smaller video (under 10MB).");
             }
 
             if (!res.ok || data.error) throw new Error(data.error || "Unknown error");
