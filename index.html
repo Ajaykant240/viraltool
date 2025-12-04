@@ -1,441 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Viral Video Generator PRO</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>AI Viral Video Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ——— Premium iOS White Minimal UI ——— */
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --accent: #0a84ff;
+      --text-main: #0b0f19;
+      --text-muted: #8a8f9f;
+      --radius: 22px;
+      --shadow-soft: 0 14px 34px rgba(0,0,0,0.09);
+      --border-light: rgba(0,0,0,0.07);
+    }
 
-    <style>
-        body {
-            margin: 0;
-            font-family: "Inter", sans-serif;
-            background: #0f0f11;
-            color: #fff;
-        }
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      padding: 22px;
+      display: flex;
+      justify-content: center;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 40px 20px;
-        }
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--card);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-light);
+      animation: fadeUp 0.4s ease;
+    }
 
-        h1 {
-            font-size: 32px;
-            font-weight: 900;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00ff8c, #00e675);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        .subtitle {
-            color: #b3b3b3;
-            font-size: 14px;
-            margin-bottom: 40px;
-        }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
+    .sub {
+      margin-top: 4px;
+      margin-bottom: 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
 
-        @media (max-width: 900px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
+    .card {
+      background: white;
+      padding: 18px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+    }
 
-        .card {
-            background: #1b1b1e;
-            padding: 25px;
-            border-radius: 18px;
-            border: 1px solid #2a2a2d;
-            box-shadow: 0 0 25px rgba(0,0,0,.5);
-        }
+    label {
+      font-size: 14px;
+      color: var(--text-main);
+      font-weight: 600;
+      margin-top: 8px;
+      display: block;
+    }
 
-        label {
-            font-weight: 600;
-            font-size: 13px;
-            color: #ccc;
-            margin-top: 15px;
-            display: block;
-            margin-bottom: 5px;
-        }
+    input, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 14px;
+      border: 1px solid #d8dbe3;
+      background: #fafbfc;
+      margin-top: 4px;
+      font-size: 14px;
+    }
 
-        .hint {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 5px;
-            display: block;
-        }
+    input[type="file"] {
+      padding: 10px;
+      background: #f1f3f6;
+    }
 
-        input[type="file"], input[type="text"], input[type="password"], textarea {
-            width: 100%;
-            background: #101012;
-            border: 1px solid #333;
-            padding: 12px;
-            border-radius: 10px;
-            color: #fff;
-            outline: none;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
 
-        input[type="range"] {
-            width: 100%;
-            margin-top: 5px;
-        }
+    input[type="range"] {
+      width: 100%;
+      margin-top: 8px;
+    }
 
-        input:focus, textarea:focus {
-            border-color: #00ff8c;
-        }
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(10,132,255,0.35);
+      transition: 0.25s;
+    }
 
-        button.primary-btn {
-            margin-top: 25px;
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #00ff8c, #00e675);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            color: #000;
-            transition: 0.2s;
-        }
+    button:hover {
+      background: #006de0;
+      transform: translateY(-2px);
+    }
 
-        button.primary-btn:hover {
-            transform: scale(1.02);
-            opacity: 0.9;
-        }
+    video {
+      display: none;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: 0.4s ease;
+    }
 
-        button.primary-btn:disabled {
-            background: #333;
-            color: #666;
-            cursor: not-allowed;
-            transform: none;
-        }
+    video.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-        .status {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #aaa;
-            text-align: center;
-        }
-
-        /* OUTPUT PANEL */
-        video {
-            width: 100%;
-            border-radius: 12px;
-            margin-top: 20px;
-            background: #000;
-        }
-
-        .result-block {
-            background: #141416;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #2c2c2f;
-            margin-top: 15px;
-            position: relative;
-        }
-
-        .result-block h3 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #00ff8c;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .result-content {
-            font-size: 14px;
-            color: #e9e9e9;
-            white-space: pre-wrap;
-            line-height: 1.5;
-            background: #000;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            min-height: 40px;
-        }
-
-        .placeholder-text {
-            color: #555;
-            font-style: italic;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: #333;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: none; /* Hidden by default until content exists */
-        }
-
-        .copy-btn.visible {
-            display: block;
-        }
-
-        .copy-btn:hover {
-            background: #00ff8c;
-            color: #000;
-        }
-
-        .loading {
-            display: none;
-            margin-top: 20px;
-            text-align: center;
-            font-size: 14px;
-            color: #00ff8c;
-            animation: blink 1.1s infinite;
-        }
-
-        @keyframes blink {
-            0% { opacity: .2; }
-            50% { opacity: 1; }
-            100% { opacity: .2; }
-        }
-    </style>
+    .output-box {
+      background: #f5f7fa;
+      border: 1px solid #d8dbe3;
+      padding: 14px;
+      border-radius: 14px;
+      white-space: pre-wrap;
+      margin-top: 12px;
+      font-size: 14px;
+      min-height: 60px;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
 
-<div class="container">
+    <h1>AI Viral Video Generator</h1>
+    <div class="sub">Upload your video & generate hooks, overlays, and captions.</div>
 
-    <h1>Viral Video Generator PRO</h1>
-    <div class="subtitle">AI-powered layout, auto-captions, and editing.</div>
+    <!-- INPUT CARD -->
+    <div class="card">
+      <label>Video (required)</label>
+      <input type="file" id="video" accept="video/*">
 
-    <div class="grid">
+      <label>Logo (optional)</label>
+      <input type="file" id="logo" accept="image/*">
 
-        <!-- LEFT PANEL – FORM -->
-        <div class="card">
-            <form id="uploadForm">
-                
-                <!-- API KEY -->
-                <label>Gemini API Key *</label>
-                <input type="password" id="api_key" placeholder="Paste your Google Gemini API Key here" required>
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="hint" style="color:#00ff8c; text-decoration:none;">Get API Key Here -></a>
+      <label>Custom Overlay Text (optional)</label>
+      <textarea id="overlay_text" placeholder="Leave empty for AI text…"></textarea>
 
-                <!-- VIDEO -->
-                <label>Upload Video *</label>
-                <input type="file" id="video" accept="video/*" required>
+      <label>Description (optional)</label>
+      <input type="text" id="description" placeholder="Describe what is happening…">
 
-                <!-- DESCRIPTION -->
-                <label>Video Description / Context (Optional)</label>
-                <span class="hint">Leave empty if you want AI to guess or be random.</span>
-                <input type="text" id="description" placeholder="e.g. A funny cat jumping over a fence">
+      <label>Music (optional)</label>
+      <input type="file" id="music" accept="audio/*">
 
-                <!-- OVERLAY TEXT -->
-                <label>Custom Overlay Text (Optional)</label>
-                <span class="hint">Leave empty to let AI generate it.</span>
-                <input type="text" id="overlay_text" placeholder="POV: When you forget to hit save...">
+      <label>Music Volume</label>
+      <input type="range" id="music_volume" min="0" max="100" value="60">
 
-                <!-- EXTRAS -->
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex:1;">
-                        <label>Logo (Optional)</label>
-                        <input type="file" id="logo" accept="image/*">
-                    </div>
-                    <div style="flex:1;">
-                        <label>Background Music (Optional)</label>
-                        <input type="file" id="music" accept="audio/*">
-                    </div>
-                </div>
-
-                <label>Music Volume (<span id="volValue">60</span>%)</label>
-                <input type="range" id="music_volume" min="0" max="200" value="60" oninput="document.getElementById('volValue').innerText = this.value">
-
-                <button type="submit" id="submitBtn" class="primary-btn">Generate Viral Reel</button>
-
-                <div class="loading" id="loadingText">Processing... this may take 1-2 minutes...</div>
-                <div class="status" id="statusText"></div>
-            </form>
-        </div>
-
-        <!-- RIGHT PANEL – OUTPUT -->
-        <div class="card">
-            <h2 style="margin-top:0;">Output Preview</h2>
-
-            <div id="placeholder" style="height: 300px; display:flex; align-items:center; justify-content:center; color:#333; border: 2px dashed #333; border-radius:12px;">
-                Video will appear here
-            </div>
-
-            <video id="resultVideo" controls style="display:none;"></video>
-
-            <!-- BLOCK 1: VIRAL SCREEN TEXT (Always Visible) -->
-            <div id="overlayContainer" class="result-block">
-                <h3>Viral Screen Text</h3>
-                <button id="copyOverlayBtn" class="copy-btn" onclick="copyToClipboard('overlayTextResult')">Copy</button>
-                <div class="result-content" id="overlayTextResult">
-                    <span class="placeholder-text">Waiting for result...</span>
-                </div>
-            </div>
-
-            <!-- BLOCK 2: INSTAGRAM CAPTIONS (Always Visible) -->
-            <div id="captionContainer" class="result-block">
-                <h3>Caption Copy</h3>
-                <button id="copyCaptionBtn" class="copy-btn" onclick="copyToClipboard('captionText')">Copy</button>
-                <div class="result-content" id="captionText">
-                    <span class="placeholder-text">Waiting for result...</span>
-                </div>
-            </div>
-
-        </div>
-
+      <button onclick="generateVideo()">Generate Video</button>
     </div>
 
-</div>
+    <!-- OUTPUT CARD -->
+    <div class="card">
+      <h3>Output Video</h3>
+      <video id="outputVideo" controls></video>
 
+      <h3>AI Overlay Text</h3>
+      <div id="textOut" class="output-box">Nothing yet…</div>
 
-<!-- JS -->
+      <h3>AI Captions</h3>
+      <div id="captionsOut" class="output-box">Nothing yet…</div>
+    </div>
+
+  </div>
+
 <script>
-const form = document.getElementById("uploadForm");
-const loadingText = document.getElementById("loadingText");
-const statusText = document.getElementById("statusText");
-const resultVideo = document.getElementById("resultVideo");
+  const BACKEND_URL = "https://viraltool.onrender.com";
 
-const captionText = document.getElementById("captionText");
-const overlayTextResult = document.getElementById("overlayTextResult");
-const copyCaptionBtn = document.getElementById("copyCaptionBtn");
-const copyOverlayBtn = document.getElementById("copyOverlayBtn");
-
-const placeholder = document.getElementById("placeholder");
-const submitBtn = document.getElementById("submitBtn");
-
-// CONFIGURATION:
-const BACKEND_URL = ""; 
-
-// COPY FUNCTION
-function copyToClipboard(elementId) {
-    const text = document.getElementById(elementId).innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-    });
-}
-
-form.onsubmit = async (e) => {
-    e.preventDefault();
-
+  async function generateVideo() {
+    const form = new FormData();
     const video = document.getElementById("video").files[0];
-    const apiKey = document.getElementById("api_key").value;
 
-    if (!video) { alert("Please upload a video."); return; }
-    if (!apiKey) { alert("API Key is required."); return; }
-
-    const formData = new FormData();
-    formData.append("video", video);
-    formData.append("api_key", apiKey);
-    
-    // Optional Fields
-    const logo = document.getElementById("logo").files[0];
-    if (logo) formData.append("logo", logo);
-
-    const music = document.getElementById("music").files[0];
-    if (music) formData.append("music", music);
-
-    formData.append("overlay_text", document.getElementById("overlay_text").value);
-    formData.append("description", document.getElementById("description").value);
-    formData.append("music_volume", document.getElementById("music_volume").value);
-
-    // UI Updates
-    loadingText.style.display = "block";
-    statusText.textContent = "Uploading & generating...";
-    submitBtn.disabled = true;
-    placeholder.style.display = "flex";
-    resultVideo.style.display = "none";
-    
-    // Reset Text Blocks to Loading State
-    overlayTextResult.innerHTML = '<span class="loading" style="display:inline; color:#00ff8c;">Generating text...</span>';
-    captionText.innerHTML = '<span class="loading" style="display:inline; color:#00ff8c;">Writing caption...</span>';
-    copyOverlayBtn.classList.remove('visible');
-    copyCaptionBtn.classList.remove('visible');
-
-    try {
-        const endpoint = "/api/generate-video";
-        const url = BACKEND_URL + endpoint;
-
-        // CHECK PREVIEW MODE
-        if (window.location.protocol === 'blob:' && !BACKEND_URL) {
-            throw new Error("PREVIEW_MODE_ERROR");
-        }
-
-        const res = await fetch(url, {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await res.json();
-
-        loadingText.style.display = "none";
-        submitBtn.disabled = false;
-
-        if (!res.ok || data.error) {
-            statusText.textContent = "Error: " + (data.error || "Unknown error");
-            alert("Error: " + (data.error || "Unknown error"));
-            // Reset placeholders on error
-            overlayTextResult.innerHTML = '<span class="placeholder-text">Failed to generate</span>';
-            captionText.innerHTML = '<span class="placeholder-text">Failed to generate</span>';
-            return;
-        }
-
-        statusText.textContent = "Generation Complete!";
-        placeholder.style.display = "none";
-
-        // Show video
-        let videoUrl = data.video_url;
-        if (BACKEND_URL && !videoUrl.startsWith('http')) {
-            videoUrl = BACKEND_URL + videoUrl;
-        }
-        
-        resultVideo.src = videoUrl;
-        resultVideo.style.display = "block";
-
-        // Show captions
-        if(data.captions) {
-            captionText.textContent = data.captions;
-            copyCaptionBtn.classList.add('visible');
-        }
-        
-        // Show overlay text
-        if(data.overlay_text) {
-            overlayTextResult.textContent = data.overlay_text;
-            copyOverlayBtn.classList.add('visible');
-        }
-
-    } catch (err) {
-        loadingText.style.display = "none";
-        submitBtn.disabled = false;
-        
-        // Reset placeholders
-        overlayTextResult.innerHTML = '<span class="placeholder-text">Waiting for result...</span>';
-        captionText.innerHTML = '<span class="placeholder-text">Waiting for result...</span>';
-        
-        console.error(err);
-
-        if (err.message === "PREVIEW_MODE_ERROR" || (err.name === "TypeError" && err.message.includes("Failed to parse URL"))) {
-            statusText.textContent = "Backend not found.";
-            alert("⚠️ BACKEND REQUIRED\n\nYou are running this in a browser preview where the Python backend cannot run.\n\nTo use this tool, you must:\n1. Deploy this code to a server (like Render).\n2. Or run 'python main.py' locally.");
-        } else {
-            statusText.textContent = "Failed to connect to server.";
-            alert("Connection Error: Make sure the Python backend (main.py) is running.");
-        }
+    if (!video) {
+      alert("Please upload a video first.");
+      return;
     }
-};
+
+    form.append("video", video);
+
+    if (document.getElementById("logo").files.length > 0) {
+      form.append("logo", document.getElementById("logo").files[0]);
+    }
+
+    if (document.getElementById("music").files.length > 0) {
+      form.append("music", document.getElementById("music").files[0]);
+    }
+
+    form.append("overlay_text", document.getElementById("overlay_text").value);
+    form.append("description", document.getElementById("description").value);
+    form.append("music_volume", document.getElementById("music_volume").value);
+
+    const res = await fetch(`${BACKEND_URL}/api/generate-video`, {
+      method: "POST",
+      body: form
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Error: " + data.error);
+      return;
+    }
+
+    // Video
+    const videoEl = document.getElementById("outputVideo");
+    videoEl.src = data.video_url.startsWith("http")
+      ? data.video_url
+      : BACKEND_URL + data.video_url;
+    videoEl.classList.add("visible");
+
+    // Text & captions
+    document.getElementById("textOut").innerText = data.overlay_text;
+    document.getElementById("captionsOut").innerText = data.captions;
+  }
 </script>
 
 </body>
