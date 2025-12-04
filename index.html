@@ -1,431 +1,529 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Viral Video Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viraltool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ——— GLOBAL STYLES ——— */
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  <style>
-    /* ——— Premium iOS White Minimal UI ——— */
-    :root {
-      --bg: #f5f7fa;
-      --card: #ffffff;
-      --accent: #0a84ff;
-      --text-main: #0b0f19;
-      --text-muted: #8a8f9f;
-      --radius: 22px;
-      --shadow-soft: 0 14px 34px rgba(0,0,0,0.09);
-      --border-light: rgba(0,0,0,0.07);
+        /* ——— CAT LOADER STYLES ——— */
+        :root {
+            --pink: #ff4f9a;
+            --pink-soft: rgba(255, 79, 154, 0.2);
+            --text-main: #0b0f19;
+            --text-muted: #8a8f9f;
+        }
 
-      --pink: #ff4f9a;
-      --pink-soft: rgba(255, 79, 154, 0.2);
-    }
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      padding: 22px;
-      display: flex;
-      justify-content: center;
-    }
+        .loader-overlay.visible {
+            display: flex;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 900px;
-      background: var(--card);
-      border-radius: 26px;
-      padding: 24px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid var(--border-light);
-      animation: fadeUp 0.4s ease;
-    }
+        .loader-card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            padding: 20px 22px 18px;
+            width: 260px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(15px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+        .loader-cat {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 12px;
+            display: block;
+            object-fit: contain;
+        }
 
-    h1 {
-      margin: 0;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
+        .loader-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
 
-    .sub {
-      margin-top: 4px;
-      margin-bottom: 20px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
+        .loader-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
 
-    .card {
-      background: white;
-      padding: 18px;
-      border-radius: 20px;
-      margin-bottom: 22px;
-      border: 1px solid var(--border-light);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.06);
-    }
+        .loader-bar-wrapper {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #f3e1eb;
+            overflow: hidden;
+            margin-bottom: 6px;
+            box-shadow: inset 0 0 0 1px rgba(255, 79, 154, 0.3);
+        }
 
-    .card h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 18px;
-      color: var(--text-main);
-    }
+        .loader-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #ff9ac8, #ff4f9a, #ff9ac8);
+            box-shadow: 0 0 10px var(--pink-soft);
+            transition: width 0.25s ease;
+        }
 
-    label {
-      font-size: 14px;
-      color: var(--text-main);
-      font-weight: 600;
-      margin-top: 8px;
-      display: block;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 11px 14px;
-      border-radius: 14px;
-      border: 1px solid #d8dbe3;
-      background: #fafbfc;
-      margin-top: 4px;
-      font-size: 14px;
-    }
-
-    input[type="file"] {
-      padding: 10px;
-      background: #f1f3f6;
-    }
-
-    textarea {
-      min-height: 70px;
-      resize: vertical;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      margin-top: 8px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 999px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(10,132,255,0.35);
-      transition: 0.25s;
-    }
-
-    button:hover:enabled {
-      background: #006de0;
-      transform: translateY(-2px);
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-
-    video {
-      display: none;
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 16px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: 0.4s ease;
-    }
-
-    video.visible {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .output-box {
-      background: #f5f7fa;
-      border: 1px solid #d8dbe3;
-      padding: 14px;
-      border-radius: 14px;
-      white-space: pre-wrap;
-      margin-top: 12px;
-      font-size: 14px;
-      min-height: 60px;
-    }
-
-    /* ---------- Loader Overlay ---------- */
-    .loader-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .loader-overlay.visible {
-      display: flex;
-    }
-
-    .loader-card {
-      background: rgba(255, 255, 255, 0.97);
-      border-radius: 20px;
-      padding: 20px 22px 18px;
-      width: 260px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-      text-align: center;
-      border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .loader-cat {
-      width: 120px;   /* medium size */
-      height: 120px;
-      margin: 0 auto 12px;
-      display: block;
-      object-fit: contain;
-    }
-
-    .loader-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 6px;
-    }
-
-    .loader-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .loader-bar-wrapper {
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: #f3e1eb;
-      overflow: hidden;
-      margin-bottom: 6px;
-      box-shadow: inset 0 0 0 1px rgba(255, 79, 154, 0.3);
-    }
-
-    .loader-bar {
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #ff9ac8, #ff4f9a, #ff9ac8);
-      box-shadow: 0 0 10px var(--pink-soft);
-      transition: width 0.25s ease;
-    }
-
-    .loader-percent {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-  </style>
+        .loader-percent {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
+<body class="bg-gray-50 text-gray-900">
 
-<body>
-  <!-- Loader Overlay -->
-  <div id="loaderOverlay" class="loader-overlay">
-    <div class="loader-card">
-      <!-- Replace src with your transparent cat loader file path -->
-      <video
-        class="loader-cat"
-        src="/static/cat-loader.webm"
-        autoplay
-        loop
-        muted
-        playsinline
-      ></video>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-card">
+            <video
+                class="loader-cat"
+                src="/static/cat-loader.webm"
+                autoplay
+                loop
+                muted
+                playsinline
+            ></video>
 
-      <div class="loader-title">Generating your video…</div>
-      <div class="loader-sub">Our cat is pushing pixels for you 🐾</div>
+            <div class="loader-title">Generating your video…</div>
+            <div class="loader-sub">Our cat is pushing pixels for you 🐾</div>
 
-      <div class="loader-bar-wrapper">
-        <div id="loaderBar" class="loader-bar"></div>
-      </div>
-      <div class="loader-percent" id="loaderPercent">1%</div>
-    </div>
-  </div>
-
-  <!-- Main UI -->
-  <div class="container">
-
-    <h1>AI Viral Video Generator</h1>
-    <div class="sub">Upload your video & generate hooks, overlays, and captions.</div>
-
-    <!-- INPUT CARD -->
-    <div class="card">
-      <h3>Create New</h3>
-
-      <label>Video (required)</label>
-      <input type="file" id="video" accept="video/*">
-
-      <label>Logo (optional)</label>
-      <input type="file" id="logo" accept="image/*">
-
-      <label>Custom Overlay Text (optional)</label>
-      <textarea id="overlay_text" placeholder="Leave empty for AI text…"></textarea>
-
-      <label>Description (optional)</label>
-      <input type="text" id="description" placeholder="Describe what is happening…">
-
-      <label>Music (optional)</label>
-      <input type="file" id="music" accept="audio/*">
-
-      <label>Music Volume</label>
-      <input type="range" id="music_volume" min="0" max="100" value="60">
-
-      <button id="generateBtn" onclick="generateVideo()">Generate Video</button>
+            <div class="loader-bar-wrapper">
+                <div id="loaderBar" class="loader-bar"></div>
+            </div>
+            <div class="loader-percent" id="loaderPercent">1%</div>
+        </div>
     </div>
 
-    <!-- OUTPUT CARD -->
-    <div class="card">
-      <h3>Output Video</h3>
-      <video id="outputVideo" controls></video>
+    <div class="flex h-screen overflow-hidden">
 
-      <h3>AI Overlay Text</h3>
-      <div id="textOut" class="output-box">Nothing yet…</div>
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-20 hidden md:flex">
+            <div class="h-16 flex items-center px-8 border-b border-gray-100">
+                <span class="text-2xl font-black tracking-tighter">Viraltool</span>
+            </div>
 
-      <h3>AI Captions</h3>
-      <div id="captionsOut" class="output-box">Nothing yet…</div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center px-4 py-3 bg-black text-white rounded-lg group transition-all">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    <span class="font-medium">Dashboard</span>
+                </button>
+                
+                <button onclick="switchTab('create')" id="nav-create" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg group transition-all">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <span class="font-medium">Create New</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">U</div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">User</p>
+                        <p class="text-xs text-gray-500">Free Plan</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 h-screen overflow-y-auto no-scrollbar bg-gray-50 relative">
+
+            <div id="view-dashboard" class="block">
+                <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-10">
+                    <h2 class="text-xl font-bold">Overview</h2>
+                    <button onclick="switchTab('create')" class="bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition shadow-sm">
+                        + New Video
+                    </button>
+                </header>
+
+                <div class="p-8 max-w-7xl mx-auto space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-gray-500 text-sm font-medium">Videos Generated</h3>
+                                <span class="p-2 bg-gray-100 rounded-lg text-gray-600">📹</span>
+                            </div>
+                            <p class="text-3xl font-bold text-gray-900" id="stat-count">0</p>
+                            <p class="text-sm text-green-600 mt-1 font-medium">All time</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-gray-500 text-sm font-medium">History Limit</h3>
+                                <span class="p-2 bg-gray-100 rounded-lg text-gray-600">📅</span>
+                            </div>
+                            <p class="text-3xl font-bold text-gray-900">30 Days</p>
+                            <p class="text-sm text-gray-400 mt-1">Auto-delete older</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-gray-500 text-sm font-medium">System Status</h3>
+                                <span class="p-2 bg-gray-100 rounded-lg text-gray-600">⚡</span>
+                            </div>
+                            <p class="text-3xl font-bold text-green-500">Online</p>
+                            <p class="text-sm text-gray-400 mt-1">Ready to create</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-lg">History (Last 30 Days)</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-3 font-medium">Video / Details</th>
+                                        <th class="px-6 py-3 font-medium">Date Created</th>
+                                        <th class="px-6 py-3 font-medium">Status</th>
+                                        <th class="px-6 py-3 font-medium text-right">Link</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="history-table-body">
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-8 text-center text-gray-400">No videos generated yet.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-create" class="hidden h-full">
+                <header class="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-10">
+                    <h1 class="text-2xl font-bold text-black">Viraltool Engine</h1>
+                </header>
+
+                <div class="p-8 max-w-6xl mx-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        
+                        <div class="space-y-6">
+                            
+                            <div>
+                                <label class="block text-lg font-bold text-black mb-2">Load Video (Required)</label>
+                                <div onclick="document.getElementById('videoInput').click()" 
+                                     class="border-2 border-dashed border-gray-300 rounded-lg p-10 flex flex-col items-center justify-center bg-white hover:bg-gray-50 transition cursor-pointer text-center h-40 group">
+                                    <svg class="w-8 h-8 text-gray-400 mb-2 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span id="videoFileName" class="text-gray-400 font-medium group-hover:text-black transition">Click to upload video</span>
+                                    <input type="file" id="videoInput" class="hidden" accept="video/*" onchange="updateFileName(this, 'videoFileName')">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-bold text-black mb-2">Load Logo (Optional)</label>
+                                <div onclick="document.getElementById('logoInput').click()" 
+                                     class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-white hover:bg-gray-50 transition cursor-pointer text-center h-28 group">
+                                    <svg class="w-6 h-6 text-gray-400 mb-2 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span id="logoFileName" class="text-gray-400 font-medium text-sm group-hover:text-black transition">Click to upload logo</span>
+                                    <input type="file" id="logoInput" class="hidden" accept="image/*" onchange="updateFileName(this, 'logoFileName')">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-bold text-black mb-2">Custom Text Overlay</label>
+                                <input type="text" id="textInput" placeholder="Leave blank for AI text generation..." class="w-full border border-gray-300 rounded-lg p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+
+                             <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">Background Music</label>
+                                    <input type="file" id="musicInput" accept="audio/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-black hover:file:bg-gray-200">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">Volume (%)</label>
+                                    <input type="number" id="volumeInput" value="60" min="0" max="100" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Content Description (Optional)</label>
+                                <input type="text" id="descInput" placeholder="Describe context for better AI captions..." class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                            </div>
+
+                            <button id="generateBtn" onclick="generateVideo()" class="w-full bg-black text-white font-bold text-lg py-4 rounded-lg hover:bg-gray-800 transition shadow-lg flex justify-center items-center gap-2">
+                                <span>Generate Viral Video</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <div class="border border-gray-200 bg-white rounded-2xl p-6 shadow-sm sticky top-24">
+                                <div class="mb-4 text-center">
+                                    <h2 class="text-2xl font-bold leading-tight" id="previewTitle">Preview Output</h2>
+                                </div>
+
+                                <div id="previewContainer" class="relative w-full aspect-[9/16] bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+                                    <div id="previewPlaceholder" class="text-center p-6">
+                                        <div class="text-4xl mb-2">🎬</div>
+                                        <p class="text-gray-400 text-sm">Your generated video will appear here.</p>
+                                    </div>
+                                    
+                                    <video id="outputVideo" class="w-full h-full object-contain hidden bg-black" controls playsinline loop></video>
+
+                                    <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 pointer-events-none">
+                                        <span class="text-white text-3xl font-bold drop-shadow-md opacity-80">Viraltool</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 space-y-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase">AI Overlay</span>
+                                        <div id="outOverlay" class="text-sm font-medium text-gray-800 min-h-[20px]">-</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase">AI Captions</span>
+                                        <div id="outCaptions" class="text-sm text-gray-600 min-h-[20px]">-</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
-
-  </div>
 
 <script>
-  const BACKEND_URL = "https://viraltool.onrender.com";
+    // ——— CONFIGURATION ———
+    const BACKEND_URL = "https://viraltool.onrender.com";
+    const HISTORY_KEY = "viraltool_history_data";
 
-  const loaderOverlay = document.getElementById("loaderOverlay");
-  const loaderBar = document.getElementById("loaderBar");
-  const loaderPercent = document.getElementById("loaderPercent");
-  const generateBtn = document.getElementById("generateBtn");
+    // ——— GLOBAL VARIABLES ———
+    const loaderOverlay = document.getElementById("loaderOverlay");
+    const loaderBar = document.getElementById("loaderBar");
+    const loaderPercent = document.getElementById("loaderPercent");
+    const generateBtn = document.getElementById("generateBtn");
+    let loaderInterval = null;
+    let loaderProgress = 1;
 
-  let loaderInterval = null;
-  let loaderProgress = 1;
+    // ——— INITIALIZATION ———
+    document.addEventListener('DOMContentLoaded', () => {
+        renderDashboard();
+    });
 
-  function startLoader() {
-    loaderProgress = 1;
-    loaderBar.style.width = loaderProgress + "%";
-    loaderPercent.textContent = loaderProgress + "%";
-    loaderOverlay.classList.add("visible");
-    generateBtn.disabled = true;
+    // ——— NAVIGATION LOGIC ———
+    function switchTab(tabName) {
+        // Reset Styles
+        document.getElementById('nav-dashboard').className = "w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg group transition-all";
+        document.getElementById('nav-create').className = "w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg group transition-all";
+        
+        // Hide Views
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-create').classList.add('hidden');
 
-    // Fake progress while backend is working
-    loaderInterval = setInterval(() => {
-      // Stop at 95% max until response
-      if (loaderProgress < 95) {
-        // make progress slower after 70%
-        const step = loaderProgress < 70 ? 4 : 2;
-        loaderProgress = Math.min(loaderProgress + step, 95);
+        // Activate Tab
+        if(tabName === 'dashboard') {
+            document.getElementById('nav-dashboard').className = "w-full flex items-center px-4 py-3 bg-black text-white rounded-lg group transition-all";
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            renderDashboard(); 
+        } else if (tabName === 'create') {
+            document.getElementById('nav-create').className = "w-full flex items-center px-4 py-3 bg-black text-white rounded-lg group transition-all";
+            document.getElementById('view-create').classList.remove('hidden');
+        }
+    }
+
+    // ——— LOADER ANIMATION LOGIC ———
+    function startLoader() {
+        loaderProgress = 1;
         loaderBar.style.width = loaderProgress + "%";
         loaderPercent.textContent = loaderProgress + "%";
-      }
-    }, 400);
-  }
+        loaderOverlay.classList.add("visible");
+        generateBtn.disabled = true;
 
-  function finishLoader() {
-    // Jump to 100%
-    loaderProgress = 100;
-    loaderBar.style.width = "100%";
-    loaderPercent.textContent = "100%";
-
-    setTimeout(() => {
-      loaderOverlay.classList.remove("visible");
-      generateBtn.disabled = false;
-      if (loaderInterval) {
-        clearInterval(loaderInterval);
-        loaderInterval = null;
-      }
-    }, 500);
-  }
-
-  function errorLoader() {
-    // Let it stop around current value
-    setTimeout(() => {
-      loaderOverlay.classList.remove("visible");
-      generateBtn.disabled = false;
-      if (loaderInterval) {
-        clearInterval(loaderInterval);
-        loaderInterval = null;
-      }
-    }, 300);
-  }
-
-  async function generateVideo() {
-    const form = new FormData();
-    const video = document.getElementById("video").files[0];
-
-    if (!video) {
-      alert("Please upload a video first.");
-      return;
+        // Fake progress up to 95% while waiting for backend
+        loaderInterval = setInterval(() => {
+            if (loaderProgress < 95) {
+                const step = loaderProgress < 70 ? 4 : 2;
+                loaderProgress = Math.min(loaderProgress + step, 95);
+                loaderBar.style.width = loaderProgress + "%";
+                loaderPercent.textContent = loaderProgress + "%";
+            }
+        }, 400);
     }
 
-    form.append("video", video);
+    function finishLoader() {
+        loaderProgress = 100;
+        loaderBar.style.width = "100%";
+        loaderPercent.textContent = "100%";
 
-    if (document.getElementById("logo").files.length > 0) {
-      form.append("logo", document.getElementById("logo").files[0]);
+        setTimeout(() => {
+            loaderOverlay.classList.remove("visible");
+            generateBtn.disabled = false;
+            if (loaderInterval) {
+                clearInterval(loaderInterval);
+                loaderInterval = null;
+            }
+        }, 500);
     }
 
-    if (document.getElementById("music").files.length > 0) {
-      form.append("music", document.getElementById("music").files[0]);
+    function errorLoader() {
+        setTimeout(() => {
+            loaderOverlay.classList.remove("visible");
+            generateBtn.disabled = false;
+            if (loaderInterval) {
+                clearInterval(loaderInterval);
+                loaderInterval = null;
+            }
+        }, 300);
     }
 
-    form.append("overlay_text", document.getElementById("overlay_text").value);
-    form.append("description", document.getElementById("description").value);
-    form.append("music_volume", document.getElementById("music_volume").value);
-
-    // Start loader
-    startLoader();
-
-    let data;
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-video`, {
-        method: "POST",
-        body: form
-      });
-
-      data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Unknown error");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error: " + err.message);
-      errorLoader();
-      return;
+    // ——— UI HELPERS ———
+    function updateFileName(input, displayId) {
+        if(input.files && input.files.length > 0) {
+            document.getElementById(displayId).textContent = input.files[0].name;
+            document.getElementById(displayId).classList.add("text-black", "font-bold");
+        }
     }
 
-    // Success → finish loader
-    finishLoader();
+    // ——— BACKEND CONNECTION ———
+    async function generateVideo() {
+        const videoFile = document.getElementById("videoInput").files[0];
+        if (!videoFile) {
+            alert("Please upload a video first.");
+            return;
+        }
 
-    // Video
-    const videoEl = document.getElementById("outputVideo");
-    const rawUrl = data.video_url;
-    const fullUrl = rawUrl.startsWith("http") ? rawUrl : BACKEND_URL + rawUrl;
+        // Construct Data for Python Backend
+        const form = new FormData();
+        form.append("video", videoFile);
+        
+        if (document.getElementById("logoInput").files[0]) {
+            form.append("logo", document.getElementById("logoInput").files[0]);
+        }
+        if (document.getElementById("musicInput").files[0]) {
+            form.append("music", document.getElementById("musicInput").files[0]);
+        }
+        
+        form.append("overlay_text", document.getElementById("textInput").value);
+        form.append("description", document.getElementById("descInput").value);
+        form.append("music_volume", document.getElementById("volumeInput").value);
 
-    videoEl.src = fullUrl;
-    videoEl.classList.add("visible");
+        // Start Loader
+        startLoader();
 
-    // Text & captions
-    document.getElementById("textOut").innerText = data.overlay_text || "";
-    document.getElementById("captionsOut").innerText = data.captions || "";
-  }
+        try {
+            // Send Request
+            const res = await fetch(`${BACKEND_URL}/api/generate-video`, {
+                method: "POST",
+                body: form
+            });
+            const data = await res.json();
+
+            if (!res.ok || data.error) throw new Error(data.error || "Unknown error");
+
+            // Success: Finish Loader
+            finishLoader();
+
+            // 1. Show Video in Preview
+            const fullUrl = data.video_url.startsWith("http") ? data.video_url : BACKEND_URL + data.video_url;
+            const vidEl = document.getElementById("outputVideo");
+            vidEl.src = fullUrl;
+            vidEl.classList.remove("hidden");
+            document.getElementById("previewPlaceholder").classList.add("hidden");
+            
+            // 2. Show Generated Text
+            document.getElementById("outOverlay").innerText = data.overlay_text || "No text generated";
+            document.getElementById("outCaptions").innerText = (data.captions || "No captions").substring(0, 100) + "...";
+
+            // 3. Save to Dashboard History
+            saveToHistory({
+                name: videoFile.name,
+                url: fullUrl,
+                date: new Date().toISOString(),
+                overlay: data.overlay_text
+            });
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
+            errorLoader();
+        }
+    }
+
+    // ——— DASHBOARD / HISTORY LOGIC ———
+    function saveToHistory(item) {
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        history.unshift(item); // Add to top
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function renderDashboard() {
+        const tbody = document.getElementById("history-table-body");
+        const countEl = document.getElementById("stat-count");
+        
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+
+        // Filter: Keep only last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const cleanHistory = history.filter(item => new Date(item.date) > thirtyDaysAgo);
+        
+        // Save cleaned history back
+        if(cleanHistory.length !== history.length) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(cleanHistory));
+        }
+
+        // Update Stats
+        countEl.innerText = cleanHistory.length;
+
+        // Populate Table
+        tbody.innerHTML = "";
+        
+        if (cleanHistory.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">No videos generated yet.</td></tr>`;
+            return;
+        }
+
+        cleanHistory.forEach(item => {
+            const dateObj = new Date(item.date);
+            const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-gray-50 transition";
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 bg-gray-200 rounded flex items-center justify-center text-xl">🎬</div>
+                        <div>
+                            <p class="font-medium text-gray-900 truncate max-w-[150px]">${item.name}</p>
+                            <p class="text-xs text-gray-500 truncate max-w-[150px]">${item.overlay || "AI Generated"}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">${dateStr}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Ready</span></td>
+                <td class="px-6 py-4 text-right">
+                    <a href="${item.url}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Download</a>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 </script>
-
 </body>
 </html>
